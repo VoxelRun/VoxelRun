@@ -6,6 +6,13 @@
 
 A federated voxel-game inspired by Minecraft. 
 
+## Index
+- [Usage](#usage)
+  - [System Requirements](#system-requirements)
+  - [Build Requirements](#build-requirements)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Usage
 
 ### System Requirements
