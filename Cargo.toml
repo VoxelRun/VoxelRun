@@ -1,2 +1,3 @@
 [workspace]
-members = ["vr-core"]
+members = ["vr-core", "vr-server", "vr-client", "vr-networking-core", "vr-networking-transport", "vr-networking-federation", "vr-renderer", "vr-threading"]
+resolver = "2"
