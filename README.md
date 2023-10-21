@@ -28,7 +28,7 @@ TBA
 - vr-core: Basic code shared between client and server
 - vr-server: Server binary
 - vr-client: Client binary
-- vr-rotocol-Specs: RFCs for the network protocols
+- vr-protocol-specs: RFCs for the network protocols
 - vr-networking-core: Core transport layers defined in spec
 - vr-networking-transport: Implementation of the spec
 - vr-networking-federation: Federation implementation
