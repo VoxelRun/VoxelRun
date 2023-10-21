@@ -3,5 +3,33 @@
 version = 3
 
 [[package]]
+name = "vr-client"
+version = "0.1.0"
+
+[[package]]
 name = "vr-core"
+version = "0.1.0"
+
+[[package]]
+name = "vr-networking-core"
+version = "0.1.0"
+
+[[package]]
+name = "vr-networking-federation"
+version = "0.1.0"
+
+[[package]]
+name = "vr-networking-transport"
+version = "0.1.0"
+
+[[package]]
+name = "vr-renderer"
+version = "0.1.0"
+
+[[package]]
+name = "vr-server"
+version = "0.1.0"
+
+[[package]]
+name = "vr-threading"
 version = "0.1.0"
