@@ -3,6 +3,7 @@ use thiserror::Error;
 use self::packet::Packet;
 
 mod packet;
+mod parser_helper;
 
 #[repr(C)]
 #[derive(PartialEq, Eq, Debug)]
