@@ -5,7 +5,7 @@ use std::thread::available_parallelism;
 use vr_threading::init_global_threadpool;
 use std::{thread::sleep, time::Duration};
 
-use vr_threading::{global_init, global_exec};
+use vr_threading::{global_exec, global_init};
 
 fn main() {
     init_global_logger("log.txt".into(), "%r");

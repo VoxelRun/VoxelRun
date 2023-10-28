@@ -37,7 +37,9 @@ static THREADPOOL_INIT: Once = Once::new();
 #[doc(hidden)]
 #[allow(non_upper_case_globals)]
 #[used]
-#[cfg_attr(target_os = "linux", link_section = ".fini_array.65535")]
+#[cfg_attr(elf, link_section = ".fini_array.65535")]
+#[cfg_attr(coff, link_section = ".CRT$XPTZ65535")]
+#[cfg_attr(mach_o, link_section = "__DATA,__mod_term_func")]
 pub static __drop_pool: extern "C" fn() = {
     extern "C" fn __drop_global_pool() {
         if let Some(pool) = unsafe { THREADPOOL.take() } {
