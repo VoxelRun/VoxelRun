@@ -31,7 +31,7 @@ pub fn global_init() {
     })
 }
 
-pub static mut THREADPOOL: Option<Arc<StandardThreadPool>> = None;
+static mut THREADPOOL: Option<Arc<StandardThreadPool>> = None;
 static THREADPOOL_INIT: Once = Once::new();
 
 #[doc(hidden)]
