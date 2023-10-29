@@ -227,11 +227,23 @@ pub enum LogLevel {
 impl std::fmt::Display for LogLevel {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            LogLevel::Error => write!(f, red!("Error")),
-            LogLevel::Warn => write!(f, yellow!("Warn")),
-            LogLevel::Info => write!(f, green!("Info")),
-            LogLevel::Debug => write!(f, cyan!("Debug")),
-            LogLevel::Trace => write!(f, purple!("Trace")),
+            LogLevel::Error => write!(f, "Error"),
+            LogLevel::Warn => write!(f, "Warn"),
+            LogLevel::Info => write!(f, "Info"),
+            LogLevel::Debug => write!(f, "Debug"),
+            LogLevel::Trace => write!(f, "Trace"),
+        }
+    }
+}
+
+impl LogLevel {
+    pub fn to_pretty_string(&self) -> &'static str {
+        match self {
+            LogLevel::Error => red!("Error"),
+            LogLevel::Warn => yellow!("Warn"),
+            LogLevel::Info => green!("Info"),
+            LogLevel::Debug => cyan!("Debug"),
+            LogLevel::Trace => purple!("Trace"),
         }
     }
 }
@@ -294,17 +306,17 @@ impl Logger {
         }
         let mut new_log = self.format.clone().to_string();
         new_log = new_log.replace("%t", &generate_utc_string());
-        new_log = new_log.replace("%L", &lvl.to_string());
         new_log = new_log.replace("%T", target);
         new_log = new_log.replace("%c", module);
         new_log = new_log.replace("%f", file);
         new_log = new_log.replace("%l", &line.to_string());
         new_log = new_log.replace("%s", &args.to_string());
-        println!("{new_log}");
         self.log_file
             .lock()
             .unwrap()
-            .write_all((new_log + "\n").as_bytes())
+            .write_all((new_log.replace("%L", &lvl.to_string()) + "\n").as_bytes())
             .unwrap();
+        new_log = new_log.replace("%L", &lvl.to_pretty_string());
+        println!("{new_log}");
     }
 }
