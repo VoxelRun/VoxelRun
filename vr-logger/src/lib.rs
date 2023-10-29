@@ -45,10 +45,9 @@ pub fn init_global_logger(file: PathBuf, format: &str) {
 #[macro_export]
 macro_rules! log {
     (target: $target:expr, $lvl:expr, $($arg:tt)+) => {
-        let lvl = $lvl;
         $crate::global_log(
             format_args!($($arg)+),
-            lvl,
+            $lvl,
         (
             $target,
             module_path!(),
@@ -57,6 +56,47 @@ macro_rules! log {
         line!()
         )
     };
+    ($lvl:expr, $($arg:tt)+) => { $crate::log!(target: module_path!, $lvl, $($arg:tt)+) }
+}
+
+#[macro_export]
+macro_rules! error {
+    (target: $target:expr, $($arg:tt)+) => {
+        $crate::log!( $target, $crate::LogLevel::Error, $($arg)+)
+    };
+    ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Error, $($arg)+) }
+}
+
+#[macro_export]
+macro_rules! warn {
+    (target: $target:expr, $($arg:tt)+) => {
+        $crate::log!( $target, $crate::LogLevel::Warn, $($arg)+)
+    };
+    ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Warn, $($arg)+) }
+}
+
+#[macro_export]
+macro_rules! info {
+    (target: $target:expr, $($arg:tt)+) => {
+        $crate::log!( $target, $crate::LogLevel::Info, $($arg)+)
+    };
+    ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Info, $($arg)+) }
+}
+
+#[macro_export]
+macro_rules! debug {
+    (target: $target:expr, $($arg:tt)+) => {
+        $crate::log!( $target, $crate::LogLevel::Debug, $($arg)+)
+    };
+    ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Debug, $($arg)+) }
+}
+
+#[macro_export]
+macro_rules! trace {
+    (target: $target:expr, $($arg:tt)+) => {
+        $crate::log!( $target, $crate::LogLevel::Trace, $($arg)+)
+    };
+    ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Trace, $($arg)+) }
 }
 
 pub fn global_log(
