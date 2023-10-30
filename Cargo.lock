@@ -105,3 +105,6 @@ dependencies = [
 [[package]]
 name = "vr-threading"
 version = "0.1.0"
+dependencies = [
+ "vr-logger",
+]

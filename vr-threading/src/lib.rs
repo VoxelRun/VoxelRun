@@ -5,6 +5,7 @@ use std::{
 };
 
 use global_threadpool::ThreadPool;
+use vr_logger::{info, debug};
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -91,16 +92,6 @@ impl StandardThreadPool {
             workers,
         }
     }
-    pub fn shutdown(&mut self) {
-        drop(self.sender.take());
-
-        for worker in self.workers.iter_mut() {
-            println!("ThreadPool: Shutting down worker {}", worker.id);
-            if let Some(thread) = worker.thread.take() {
-                thread.join().unwrap();
-            }
-        }
-    }
 }
 
 struct Worker {
@@ -114,11 +105,11 @@ impl Worker {
             let message = receiver.lock().unwrap().recv();
             match message {
                 Ok(job) => {
-                    println!("ThreadPool: Worker {id} got a job; executing");
+                    debug!(target: "ThreadPool", "Worker {id} got a job; executing");
                     job()
                 }
                 Err(_) => {
-                    println!("ThreadPool: Worker {id} disconnected; shutting down");
+                    debug!(target: "ThreadPool", "Worker {id} disconnected; shutting down");
                     break;
                 }
             }
@@ -135,7 +126,7 @@ impl Drop for StandardThreadPool {
         drop(self.sender.take());
 
         for worker in self.workers.iter_mut() {
-            println!("ThreadPool: Shutting down worker {}", worker.id);
+            info!(target: "ThreadPool", "Shutting down worker {}", worker.id);
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
             }
