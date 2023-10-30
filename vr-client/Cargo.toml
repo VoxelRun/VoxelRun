@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 vr-logger= { path = "../vr-logger" }
+vr-threading = { path = "../vr-threading" }

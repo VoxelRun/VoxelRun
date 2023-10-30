@@ -44,8 +44,7 @@ dependencies = [
 name = "thiserror-impl"
 version = "1.0.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
-dependencies = [
+checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8" dependencies = [
  "proc-macro2",
  "quote",
  "syn",
@@ -62,11 +61,15 @@ name = "vr-client"
 version = "0.1.0"
 dependencies = [
  "vr-logger",
+ "vr-threading",
 ]
 
 [[package]]
 name = "vr-core"
 version = "0.1.0"
+dependencies = [
+ "vr-threading",
+]
 
 [[package]]
 name = "vr-logger"
@@ -94,6 +97,9 @@ version = "0.1.0"
 [[package]]
 name = "vr-server"
 version = "0.1.0"
+dependencies = [
+ "vr-threading",
+]
 
 [[package]]
 name = "vr-threading"
