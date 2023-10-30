@@ -56,7 +56,7 @@ macro_rules! log {
         line!()
         )
     };
-    ($lvl:expr, $($arg:tt)+) => { $crate::log!(target: module_path!, $lvl, $($arg:tt)+) }
+    ($lvl:expr, $($arg:tt)+) => { $crate::log!(target: module_path!(), $lvl, $($arg)+) }
 }
 
 #[macro_export]
