@@ -19,7 +19,7 @@ where
 {
     if let Some(pool) = unsafe { &THREADPOOL } {
         pool.execute(f)
-    } 
+    }
 }
 
 pub mod global_threadpool;
