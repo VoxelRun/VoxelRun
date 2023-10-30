@@ -17,8 +17,8 @@ pub struct StandardThreadPool {
 pub mod global_threadpool;
 
 lazy_static! {
-    pub static ref THREADPOOL: StandardThreadPool =
-        StandardThreadPool::new(available_parallelism().unwrap());
+    pub static ref THREADPOOL: Mutex<StandardThreadPool> =
+        Mutex::new(StandardThreadPool::new(available_parallelism().unwrap()));
 }
 
 impl ThreadPool for StandardThreadPool {
@@ -61,6 +61,16 @@ impl StandardThreadPool {
         StandardThreadPool {
             sender: Some(sender),
             workers,
+        }
+    }
+    pub fn shutdown(&mut self) {
+        drop(self.sender.take());
+
+        for worker in self.workers.iter_mut() {
+            println!("ThreadPool: Shutting down worker {}", worker.id);
+            if let Some(thread) = worker.thread.take() {
+                thread.join().unwrap();
+            }
         }
     }
 }
