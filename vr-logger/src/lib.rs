@@ -62,7 +62,7 @@ macro_rules! log {
 #[macro_export]
 macro_rules! error {
     (target: $target:expr, $($arg:tt)+) => {
-        $crate::log!( $target, $crate::LogLevel::Error, $($arg)+)
+        $crate::log!( target: $target, $crate::LogLevel::Error, $($arg)+)
     };
     ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Error, $($arg)+) }
 }
@@ -70,7 +70,7 @@ macro_rules! error {
 #[macro_export]
 macro_rules! warn {
     (target: $target:expr, $($arg:tt)+) => {
-        $crate::log!( $target, $crate::LogLevel::Warn, $($arg)+)
+        $crate::log!( target: $target, $crate::LogLevel::Warn, $($arg)+)
     };
     ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Warn, $($arg)+) }
 }
@@ -78,7 +78,7 @@ macro_rules! warn {
 #[macro_export]
 macro_rules! info {
     (target: $target:expr, $($arg:tt)+) => {
-        $crate::log!( $target, $crate::LogLevel::Info, $($arg)+)
+        $crate::log!( target: $target, $crate::LogLevel::Info, $($arg)+)
     };
     ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Info, $($arg)+) }
 }
@@ -86,7 +86,7 @@ macro_rules! info {
 #[macro_export]
 macro_rules! debug {
     (target: $target:expr, $($arg:tt)+) => {
-        $crate::log!( $target, $crate::LogLevel::Debug, $($arg)+)
+        $crate::log!( target: $target, $crate::LogLevel::Debug, $($arg)+)
     };
     ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Debug, $($arg)+) }
 }
@@ -94,7 +94,7 @@ macro_rules! debug {
 #[macro_export]
 macro_rules! trace {
     (target: $target:expr, $($arg:tt)+) => {
-        $crate::log!( $target, $crate::LogLevel::Trace, $($arg)+)
+        $crate::log!( target: $target, $crate::LogLevel::Trace, $($arg)+)
     };
     ($($arg:tt)+) => { $crate::log!($crate::LogLevel::Trace, $($arg)+) }
 }
