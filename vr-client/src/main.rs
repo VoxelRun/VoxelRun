@@ -7,13 +7,13 @@ use vr_threading::{global_exec, global_init };
 
 fn main() {
     init_global_logger("log.txt".into(), "%r");
+    global_init();
     trace!("hi");
     debug!("hi");
     info!("hi");
     warn!("hi");
     error!("hi");
 
-    global_init();
     global_exec(move || {
         global_exec(move || {
             sleep(Duration::from_secs(4));
