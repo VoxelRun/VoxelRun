@@ -130,7 +130,7 @@ macro_rules! yellow {
 
 macro_rules! green {
     ($str:literal) => {
-        concat!("\x1b[0;34m", $str, "\x1b[0m")
+        concat!("\x1b[0;32m", $str, "\x1b[0m")
     };
 }
 
@@ -304,7 +304,7 @@ impl Logger {
         self.log_file
             .lock()
             .unwrap()
-            .write_all(new_log.as_bytes())
+            .write_all((new_log + "\n").as_bytes())
             .unwrap();
     }
 }
