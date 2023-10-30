@@ -1,11 +1,10 @@
 use std::{
     num::NonZeroUsize,
-    sync::{mpsc, Arc, Mutex},
+    sync::{mpsc, Arc, Mutex, Once},
     thread::{self, available_parallelism},
 };
 
 use global_threadpool::ThreadPool;
-use lazy_static::lazy_static;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -14,12 +13,39 @@ pub struct StandardThreadPool {
     workers: Vec<Worker>,
 }
 
-pub mod global_threadpool;
-
-lazy_static! {
-    pub static ref THREADPOOL: Mutex<StandardThreadPool> =
-        Mutex::new(StandardThreadPool::new(available_parallelism().unwrap()));
+pub fn global_exec<F>(f: F)
+where
+    F: FnOnce() + Send + 'static,
+{
+    if let Some(pool) = unsafe { THREADPOOL.take() } {
+        pool.execute(f)
+    }
 }
+
+pub mod global_threadpool;
+pub fn global_init() {
+    THREADPOOL_INIT.call_once(|| unsafe {
+        let _ = &*THREADPOOL.get_or_insert(Arc::new(StandardThreadPool::new(
+            available_parallelism().unwrap(),
+        )));
+    })
+}
+
+pub static mut THREADPOOL: Option<Arc<StandardThreadPool>> = None;
+static THREADPOOL_INIT: Once = Once::new();
+
+#[doc(hidden)]
+#[allow(non_upper_case_globals)]
+#[used]
+#[cfg_attr(target_os = "linux", link_section = ".fini_array.65535")]
+pub static __drop_pool: extern "C" fn() = {
+    extern "C" fn __drop_global_pool() {
+        if let Some(pool) = unsafe { THREADPOOL.take() } {
+            drop(pool)
+        }
+    }
+    __drop_global_pool
+};
 
 impl ThreadPool for StandardThreadPool {
     fn execute<F>(&self, f: F)
@@ -74,6 +100,7 @@ impl StandardThreadPool {
         }
     }
 }
+
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
