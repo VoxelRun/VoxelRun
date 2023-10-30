@@ -1,6 +1,7 @@
 use std::{
+    num::NonZeroUsize,
     sync::{mpsc, Arc, Mutex},
-    thread::{self}, num::NonZeroUsize,
+    thread::{self},
 };
 
 use global_threadpool::ThreadPool;
@@ -43,9 +44,7 @@ impl ThreadPool for StandardThreadPool {
 }
 
 pub fn init_global_threadpool(size: NonZeroUsize) {
-    unsafe {
-        THREADPOOL.init(size)
-    }
+    unsafe { THREADPOOL.init(size) }
 }
 
 impl StandardThreadPool {
