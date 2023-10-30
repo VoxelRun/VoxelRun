@@ -17,7 +17,8 @@ pub struct StandardThreadPool {
 pub mod global_threadpool;
 
 lazy_static! {
-    pub static ref THREADPOOL: StandardThreadPool = StandardThreadPool::new(available_parallelism().unwrap());
+    pub static ref THREADPOOL: StandardThreadPool =
+        StandardThreadPool::new(available_parallelism().unwrap());
 }
 
 impl ThreadPool for StandardThreadPool {
@@ -46,8 +47,6 @@ impl ThreadPool for StandardThreadPool {
     }
 }
 
-
-
 impl StandardThreadPool {
     pub fn new(size: NonZeroUsize) -> Self {
         let (sender, receiver) = mpsc::channel();
@@ -61,7 +60,7 @@ impl StandardThreadPool {
 
         StandardThreadPool {
             sender: Some(sender),
-            workers
+            workers,
         }
     }
 }
