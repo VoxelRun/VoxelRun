@@ -1,10 +1,11 @@
 use std::{
     num::NonZeroUsize,
     sync::{mpsc, Arc, Mutex},
-    thread::{self},
+    thread::{self, available_parallelism},
 };
 
 use global_threadpool::ThreadPool;
+use lazy_static::lazy_static;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -15,7 +16,9 @@ pub struct StandardThreadPool {
 
 pub mod global_threadpool;
 
-pub static mut THREADPOOL: StandardThreadPool = StandardThreadPool::new();
+lazy_static! {
+    pub static ref THREADPOOL: StandardThreadPool = StandardThreadPool::new(available_parallelism().unwrap());
+}
 
 impl ThreadPool for StandardThreadPool {
     fn execute<F>(&self, f: F)
@@ -43,27 +46,23 @@ impl ThreadPool for StandardThreadPool {
     }
 }
 
-pub fn init_global_threadpool(size: NonZeroUsize) {
-    unsafe { THREADPOOL.init(size) }
-}
+
 
 impl StandardThreadPool {
-    pub const fn new() -> Self {
-        StandardThreadPool {
-            sender: None,
-            workers: Vec::new(),
-        }
-    }
-    unsafe fn init(&mut self, size: NonZeroUsize) {
+    pub fn new(size: NonZeroUsize) -> Self {
         let (sender, receiver) = mpsc::channel();
         let receiver = Arc::new(Mutex::new(receiver));
-        self.workers.reserve(size.into());
+        let mut workers = Vec::with_capacity(size.into());
+        workers.reserve(size.into());
 
         for id in 0..size.into() {
-            self.workers.push(Worker::new(id, receiver.clone()));
+            workers.push(Worker::new(id, receiver.clone()));
         }
 
-        self.sender = Some(sender);
+        StandardThreadPool {
+            sender: Some(sender),
+            workers
+        }
     }
 }
 struct Worker {
