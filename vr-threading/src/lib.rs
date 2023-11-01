@@ -29,7 +29,7 @@ pub fn global_init() {
         let _ = &*THREADPOOL.get_or_insert(Arc::new(StandardThreadPool::new(
             available_parallelism().unwrap(),
         )));
-    })
+    });
 }
 
 static mut THREADPOOL: Option<Arc<StandardThreadPool>> = None;

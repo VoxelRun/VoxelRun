@@ -22,8 +22,8 @@ static GLOBAL_LOGGER_INIT: Once = Once::new();
 #[doc(hidden)]
 #[allow(non_upper_case_globals)]
 #[used]
-#[cfg_attr(target_os = "linux", link_section = ".fini_array.65535")]
-#[cfg_attr(target_os = "windows", link_section = ".CRT$XPTZ65535")]
+#[cfg_attr(target_os = "linux", link_section = ".fini_array.65534")]
+#[cfg_attr(target_os = "windows", link_section = ".CRT$XPTZ65534")]
 #[cfg_attr(target_os = "macos", link_section = "__DATA,__mod_term_func")]
 pub static __global_logger_destructor: extern "C" fn() = {
     extern "C" fn __drop_global_logger() {
