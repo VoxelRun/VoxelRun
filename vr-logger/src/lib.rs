@@ -11,7 +11,7 @@ use std::{
 use thiserror::Error;
 
 pub struct Logger {
-    format: Arc<str>,
+    format: Box<dyn LoggerFormat>,
     log_level: LogLevel,
     log_file: Mutex<std::fs::File>,
 }
@@ -34,7 +34,7 @@ pub static __global_logger_destructor: extern "C" fn() = {
     __drop_global_logger
 };
 
-pub fn init_global_logger(file: PathBuf, format: &str) {
+pub fn init_global_logger<T: LoggerFormat + 'static>(file: PathBuf, format: Option<T>) {
     GLOBAL_LOGGER_INIT.call_once(|| unsafe {
         let _ = &*GLOBAL_LOGGER.get_or_insert(Arc::new(
             Logger::new(file, format).expect("failed to init logger"),
@@ -140,6 +140,12 @@ macro_rules! purple {
     };
 }
 
+macro_rules! light_gray {
+    ($str:literal) => {
+        concat!("\x1b[38;5;235m", $str, "\x1b[0m")
+    };
+}
+
 const SECONDS_IN_A_DAY: u64 = SECONDS_IN_AN_HOUR * 24;
 const SECONDS_IN_AN_HOUR: u64 = SECONDS_IN_A_MINUTE * 60;
 const SECONDS_IN_A_MINUTE: u64 = 60;
@@ -214,7 +220,7 @@ pub fn generate_utc_string() -> String {
     )
 }
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Default)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Default, Clone, Copy)]
 pub enum LogLevel {
     Error = 0,
     Warn = 1,
@@ -228,8 +234,8 @@ impl std::fmt::Display for LogLevel {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             LogLevel::Error => write!(f, "Error"),
-            LogLevel::Warn => write!(f, "Warn"),
-            LogLevel::Info => write!(f, "Info"),
+            LogLevel::Warn => write!(f, "Warn "),
+            LogLevel::Info => write!(f, "Info "),
             LogLevel::Debug => write!(f, "Debug"),
             LogLevel::Trace => write!(f, "Trace"),
         }
@@ -240,8 +246,8 @@ impl LogLevel {
     pub fn to_pretty_string(&self) -> &'static str {
         match self {
             LogLevel::Error => red!("Error"),
-            LogLevel::Warn => yellow!("Warn"),
-            LogLevel::Info => green!("Info"),
+            LogLevel::Warn => yellow!("Warn "),
+            LogLevel::Info => green!("Info "),
             LogLevel::Debug => cyan!("Debug"),
             LogLevel::Trace => purple!("Trace"),
         }
@@ -275,20 +281,19 @@ impl Logger {
     /// "%t %T %c %f:%l %s"
     /// "%r"
     /// ```
-    pub fn new(path: PathBuf, format: &str) -> Result<Self, Error> {
+    pub fn new<T: LoggerFormat + 'static>(path: PathBuf, format: Option<T>) -> Result<Self, Error> {
         let log_file = OpenOptions::new().create(true).append(true).open(path)?;
-        let format = if format == "%r" {
-            "%t %L %T %c %f:%l %s"
-        } else {
-            format
-        };
         let log_level = std::env::var("RUST_LOG");
         let log_level = match log_level {
             Ok(s) => s.parse().unwrap_or(LogLevel::default()),
             Err(_) => LogLevel::default(),
         };
         Ok(Self {
-            format: format.into(),
+            format: if let Some(formatter) = format {
+                Box::new(formatter)
+            } else {
+                Box::new(DefaultLogger {})
+            },
             log_level,
             log_file: log_file.into(),
         })
@@ -304,19 +309,80 @@ impl Logger {
         if lvl > self.log_level {
             return;
         }
-        let mut new_log = self.format.clone().to_string();
-        new_log = new_log.replace("%t", &generate_utc_string());
-        new_log = new_log.replace("%T", target);
-        new_log = new_log.replace("%c", module);
-        new_log = new_log.replace("%f", file);
-        new_log = new_log.replace("%l", &line.to_string());
-        new_log = new_log.replace("%s", &args.to_string());
         self.log_file
             .lock()
             .unwrap()
-            .write_all((new_log.replace("%L", &lvl.to_string()) + "\n").as_bytes())
+            .write_all(
+                self.format
+                    .render(args, lvl, (target, module, file), line)
+                    .as_bytes(),
+            )
             .unwrap();
-        new_log = new_log.replace("%L", &lvl.to_pretty_string());
-        println!("{new_log}");
+        println!(
+            "{}",
+            self.format
+                .render_pretty(args, lvl, (target, module, file), line)
+        );
+    }
+}
+
+pub trait LoggerFormat {
+    fn render_pretty(
+        &self,
+        args: Arguments,
+        lvl: LogLevel,
+        target_module_file_tuple: (&str, &str, &str),
+        line: u32,
+    ) -> String {
+        self.render(args, lvl, target_module_file_tuple, line)
+    }
+
+    fn render(
+        &self,
+        args: Arguments,
+        lvl: LogLevel,
+        target_module_file_tuple: (&str, &str, &str),
+        line: u32,
+    ) -> String;
+}
+
+pub struct DefaultLogger {}
+
+impl LoggerFormat for DefaultLogger {
+    fn render(
+        &self,
+        args: Arguments,
+        lvl: LogLevel,
+        (target, module, file): (&str, &str, &str),
+        line: u32,
+    ) -> String {
+        format!(
+            "[{}] {lvl:5} [{module} {file}:{line}] {target}: {args}\n",
+            generate_utc_string()
+        )
+    }
+
+    fn render_pretty(
+        &self,
+        args: Arguments,
+        lvl: LogLevel,
+        (target, module, file): (&str, &str, &str),
+        line: u32,
+    ) -> String {
+        format!(
+            concat!(
+                "[{}] {} ",
+                light_gray!("[{} {}:{}] "),
+                purple!("{}"),
+                ": {}"
+            ),
+            generate_utc_string(),
+            lvl.to_pretty_string(),
+            module,
+            file,
+            line,
+            target,
+            args
+        )
     }
 }
