@@ -5,9 +5,13 @@ use std::{
 };
 
 use global_threadpool::ThreadPool;
-use vr_logger::{info, debug};
+use vr_logger::{debug, error, info};
+
+pub mod global_threadpool;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
+
+const NO_THREADPOOL_ERROR: &str = "Tried to execute a task while threadpool not available";
 
 pub struct StandardThreadPool {
     sender: Option<mpsc::Sender<Job>>,
@@ -20,10 +24,11 @@ where
 {
     if let Some(pool) = unsafe { &THREADPOOL } {
         pool.execute(f)
+    } else {
+        error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}")
     }
 }
 
-pub mod global_threadpool;
 pub fn global_init() {
     THREADPOOL_INIT.call_once(|| unsafe {
         let _ = &*THREADPOOL.get_or_insert(Arc::new(StandardThreadPool::new(
@@ -56,7 +61,9 @@ impl ThreadPool for StandardThreadPool {
         F: FnOnce() + Send + 'static,
     {
         let job = Box::new(f);
-        self.sender.as_ref().unwrap().send(job).unwrap();
+        if let Err(_) = self.sender.as_ref().unwrap().send(job) {
+            error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}")
+        };
     }
 
     fn execute_eval<F, T>(&self, f: F) -> mpsc::Receiver<T>
@@ -70,7 +77,9 @@ impl ThreadPool for StandardThreadPool {
             sender.send(result).expect("Failed to send job");
         });
 
-        self.sender.as_ref().unwrap().send(job).unwrap();
+        if let Err(_) = self.sender.as_ref().unwrap().send(job) {
+            error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}")
+        };
 
         receiver
     }
