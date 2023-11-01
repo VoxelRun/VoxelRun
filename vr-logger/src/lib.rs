@@ -140,9 +140,9 @@ macro_rules! purple {
     };
 }
 
-macro_rules! light_gray {
+macro_rules! gray {
     ($str:literal) => {
-        concat!("\x1b[38;5;235m", $str, "\x1b[0m")
+        concat!("\x1b[0;90m", $str, "\x1b[0m")
     };
 }
 

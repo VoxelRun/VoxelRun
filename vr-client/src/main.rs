@@ -2,7 +2,7 @@ use vr_logger::{debug, error, info, init_global_logger, trace, warn, DefaultLogg
 
 use std::{thread::sleep, time::Duration};
 
-use vr_threading::{global_eval, global_exec, global_init};
+use vr_threading::{global_promise, global_exec, global_init};
 
 fn main() {
     init_global_logger::<DefaultLogger>("log.txt".into(), None);
@@ -26,5 +26,6 @@ fn main() {
         println!("hi2");
     });
 
-    println!("{}", global_eval(|| 3).recv().unwrap());
+    println!("{}", global_promise(|| 3).get());
+    global_promise(|| { println!("a"); }).get();
 }

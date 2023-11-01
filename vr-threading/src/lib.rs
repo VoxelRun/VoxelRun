@@ -8,9 +8,11 @@ use std::{
 };
 
 use global_threadpool::ThreadPool;
+use promises::Promise;
 use vr_logger::{debug, error, info};
 
 pub mod global_threadpool;
+pub mod promises;
 
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
@@ -32,17 +34,17 @@ where
     }
 }
 
-pub fn global_eval<F, T>(f: F) -> Receiver<T>
+pub fn global_promise<F, T>(f: F) -> Promise<T>
 where
     F: FnOnce() -> T + Send + 'static,
     T: Send + 'static,
 {
     if let Some(pool) = unsafe { &THREADPOOL } {
-        pool.execute_eval(f)
+        pool.promised(f)
     } else {
         error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}");
         let (_, receiver) = mpsc::channel();
-        receiver
+        receiver.into()
     }
 }
 
@@ -83,7 +85,7 @@ impl ThreadPool for StandardThreadPool {
         };
     }
 
-    fn execute_eval<F, T>(&self, f: F) -> mpsc::Receiver<T>
+    fn promised<F, T>(&self, f: F) -> Promise<T>
     where
         F: FnOnce() -> T + Send + 'static,
         T: Send + 'static,
@@ -98,7 +100,7 @@ impl ThreadPool for StandardThreadPool {
             error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}")
         };
 
-        receiver
+        receiver.into()
     }
 }
 
