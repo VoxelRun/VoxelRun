@@ -1,6 +1,9 @@
 use std::{
     num::NonZeroUsize,
-    sync::{mpsc, Arc, Mutex, Once},
+    sync::{
+        mpsc::{self, Receiver},
+        Arc, Mutex, Once,
+    },
     thread::{self, available_parallelism},
 };
 
@@ -26,6 +29,20 @@ where
         pool.execute(f)
     } else {
         error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}")
+    }
+}
+
+pub fn global_eval<F, T>(f: F) -> Receiver<T>
+where
+    F: FnOnce() -> T + Send + 'static,
+    T: Send + 'static,
+{
+    if let Some(pool) = unsafe { &THREADPOOL } {
+        pool.execute_eval(f)
+    } else {
+        error!(target: "ThreadPool", "{NO_THREADPOOL_ERROR}");
+        let (_, receiver) = mpsc::channel();
+        receiver
     }
 }
 
