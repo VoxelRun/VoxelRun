@@ -111,37 +111,37 @@ pub fn global_log(
 }
 
 macro_rules! cyan {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;36m", $str, "\x1b[0m")
     };
 }
 
 macro_rules! red {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;31m", $str, "\x1b[0m")
     };
 }
 
 macro_rules! yellow {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;33m", $str, "\x1b[0m")
     };
 }
 
 macro_rules! green {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;32m", $str, "\x1b[0m")
     };
 }
 
 macro_rules! purple {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;35m", $str, "\x1b[0m")
     };
 }
 
 macro_rules! gray {
-    ($str:literal) => {
+    ($str:expr) => {
         concat!("\x1b[0;90m", $str, "\x1b[0m")
     };
 }
@@ -372,7 +372,7 @@ impl LoggerFormat for DefaultLogger {
         format!(
             concat!(
                 "[{}] {} ",
-                light_gray!("[{} {}:{}] "),
+                gray!("[{} {}:{}] "),
                 purple!("{}"),
                 ": {}"
             ),
