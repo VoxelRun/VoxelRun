@@ -1,0 +1,7 @@
+[package]
+name = "vr-ecs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+vr-logger = { path = "../vr-logger" }
