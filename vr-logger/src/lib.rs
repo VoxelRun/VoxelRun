@@ -27,8 +27,8 @@ static GLOBAL_LOGGER_INIT: Once = Once::new();
 #[cfg_attr(target_os = "macos", link_section = "__DATA,__mod_term_func")]
 pub static __global_logger_destructor: extern "C" fn() = {
     extern "C" fn __drop_global_logger() {
-        if let Some(pool) = unsafe { GLOBAL_LOGGER.take() } {
-            drop(pool)
+        if let Some(logger) = unsafe { GLOBAL_LOGGER.take() } {
+            drop(logger)
         }
     }
     __drop_global_logger
@@ -370,12 +370,7 @@ impl LoggerFormat for DefaultLogger {
         line: u32,
     ) -> String {
         format!(
-            concat!(
-                "[{}] {} ",
-                gray!("[{} {}:{}] "),
-                purple!("{}"),
-                ": {}"
-            ),
+            concat!("[{}] {} ", gray!("[{} {}:{}] "), purple!("{}"), ": {}"),
             generate_utc_string(),
             lvl.to_pretty_string(),
             module,

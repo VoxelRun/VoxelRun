@@ -5,7 +5,7 @@
 //!
 //! This crate also exposes a threadpool implementation.
 
-pub mod threadpool;
 pub mod promises;
+pub mod threadpool;
 
 pub use threadpool::{global_exec, global_init, global_promise};
