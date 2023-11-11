@@ -10,6 +10,31 @@ use vr_logger::{debug, error, info};
 
 use crate::promises::Promise;
 
+pub struct GlobThreadPoolHandle;
+
+impl ThreadPool for GlobThreadPoolHandle {
+    fn execute<F>(&self, f: F)
+    where
+        F: FnOnce() + Send + 'static,
+    {
+        global_exec(f);
+    }
+
+    fn promised<F, T>(&self, f: F) -> Promise<T>
+    where
+        F: FnOnce() -> T + Send + 'static,
+        T: Send + 'static,
+    {
+        global_promise(f)
+    }
+}
+
+impl Drop for GlobThreadPoolHandle {
+    fn drop(&mut self) {
+        __drop_global_pool()
+    }
+}
+
 /// trait every threadpool needs to implement
 pub trait ThreadPool {
     /// execute a function in the threadpool without garantee of it being finished and ignoring the
@@ -29,6 +54,7 @@ type Job = Box<dyn FnOnce() + Send + 'static>;
 const NO_THREADPOOL_ERROR: &str = "Tried to execute a task while threadpool not available";
 
 /// The ThreadPool used by the VoxelRun game.
+#[derive(Debug)]
 pub struct StandardThreadPool {
     sender: Option<mpsc::Sender<Job>>,
     workers: Vec<Worker>,
@@ -62,32 +88,25 @@ where
 }
 
 /// initialize the global threadpool
-pub fn global_init() {
+pub fn global_init() -> GlobThreadPoolHandle {
     THREADPOOL_INIT.call_once(|| unsafe {
         let _ = &*THREADPOOL.get_or_insert(Arc::new(StandardThreadPool::new(
             available_parallelism().unwrap(),
         )));
     });
+    GlobThreadPoolHandle
 }
 
 static mut THREADPOOL: Option<Arc<StandardThreadPool>> = None;
 static THREADPOOL_INIT: Once = Once::new();
 
-// insert a cleanup function of the global threadpool in the cleanup section of the binary
+// cleanup function of the global threadpool
 #[doc(hidden)]
-#[allow(non_upper_case_globals)]
-#[used]
-#[cfg_attr(target_os = "linux", link_section = ".fini_array.65535")]
-#[cfg_attr(target_os = "windows", link_section = ".CRT$XPTZ65535")]
-#[cfg_attr(target_os = "macos", link_section = "__DATA,__mod_term_func")]
-pub static __static_init_destructor: extern "C" fn() = {
-    extern "C" fn __drop_global_pool() {
-        if let Some(pool) = unsafe { THREADPOOL.take() } {
-            drop(pool)
-        }
+fn __drop_global_pool() {
+    if let Some(pool) = unsafe { THREADPOOL.take() } {
+        drop(pool)
     }
-    __drop_global_pool
-};
+}
 
 impl ThreadPool for StandardThreadPool {
     fn execute<F>(&self, f: F)
@@ -139,6 +158,7 @@ impl StandardThreadPool {
 }
 
 /// One worker in a threadpool
+#[derive(Debug)]
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,

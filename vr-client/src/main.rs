@@ -6,7 +6,7 @@ use vr_threading::{global_exec, global_init, global_promise};
 
 fn main() {
     init_global_logger::<DefaultLogger>("log.txt".into(), None);
-    global_init();
+    let a = global_init();
     trace!("hi");
     debug!("hi");
     info!("hi");
@@ -31,4 +31,5 @@ fn main() {
         println!("a");
     })
     .get();
+    drop(a)
 }
