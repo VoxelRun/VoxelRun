@@ -1,14 +1,11 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+//! This is the threadpool crate for the VoxelRun project
+//!
+//! It utilizes a global threadpool which can be accessed with the global_init, global_exec and
+//! global_promise functions.
+//!
+//! This crate also exposes a threadpool implementation.
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub mod promises;
+pub mod threadpool;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use threadpool::{global_exec, global_init, global_promise};
