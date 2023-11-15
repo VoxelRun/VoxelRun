@@ -55,7 +55,10 @@ pub fn init_global_logger<T: LoggerFormat + 'static>(
             global_log(
                 format_args!(
                     "A panic occured: {}",
-                    panic_info.payload().downcast_ref::<String>().unwrap_or(&"".to_string())
+                    panic_info
+                        .payload()
+                        .downcast_ref::<String>()
+                        .unwrap_or(&"".to_string())
                 ),
                 LogLevel::Fatal,
                 ("", "", location.file()),
