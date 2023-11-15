@@ -5,7 +5,7 @@ use std::{thread::sleep, time::Duration};
 use vr_threading::{global_exec, global_init, global_promise};
 
 fn main() {
-    init_global_logger::<DefaultLogger>("log.txt".into(), None);
+    let logger = init_global_logger::<DefaultLogger>("log.txt".into(), None);
     let a = global_init();
     trace!("hi");
     debug!("hi");
@@ -25,11 +25,13 @@ fn main() {
         });
         println!("hi2");
     });
+    panic!("asdf");
 
     println!("{}", global_promise(|| 3).get());
     global_promise(|| {
         println!("a");
     })
     .get();
-    drop(a)
+    drop(a);
+    drop(logger);
 }

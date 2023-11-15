@@ -19,27 +19,59 @@ pub struct Logger {
 static mut GLOBAL_LOGGER: Option<Arc<Logger>> = None;
 static GLOBAL_LOGGER_INIT: Once = Once::new();
 
-#[doc(hidden)]
-#[allow(non_upper_case_globals)]
-#[used]
-#[cfg_attr(target_os = "linux", link_section = ".fini_array.65534")]
-#[cfg_attr(target_os = "windows", link_section = ".CRT$XPTZ65534")]
-#[cfg_attr(target_os = "macos", link_section = "__DATA,__mod_term_func")]
-pub static __global_logger_destructor: extern "C" fn() = {
-    extern "C" fn __drop_global_logger() {
-        if let Some(logger) = unsafe { GLOBAL_LOGGER.take() } {
-            drop(logger)
-        }
-    }
-    __drop_global_logger
-};
+pub struct GlobLoggerHandle;
 
-pub fn init_global_logger<T: LoggerFormat + 'static>(file: PathBuf, format: Option<T>) {
+impl GlobLoggerHandle {
+    pub fn log(
+        &self,
+        args: Arguments,
+        lvl: LogLevel,
+        (target, module, file): (&str, &str, &str),
+        line: u32,
+    ) {
+        global_log(args, lvl, (target, module, file), line);
+    }
+}
+
+impl Drop for GlobLoggerHandle {
+    fn drop(&mut self) {
+        __drop_global_logger();
+    }
+}
+
+#[doc(hidden)]
+extern "C" fn __drop_global_logger() {
+    if let Some(logger) = unsafe { GLOBAL_LOGGER.take() } {
+        drop(logger)
+    }
+}
+
+pub fn init_global_logger<T: LoggerFormat + 'static>(
+    file: PathBuf,
+    format: Option<T>,
+) -> GlobLoggerHandle {
+    std::panic::set_hook(Box::new(|panic_info| {
+        if let Some(location) = panic_info.location() {
+            global_log(
+                format_args!(
+                    "A panic occured: {}",
+                    panic_info
+                        .payload()
+                        .downcast_ref::<String>()
+                        .unwrap_or(&"".to_string())
+                ),
+                LogLevel::Fatal,
+                ("", "", location.file()),
+                location.line(),
+            )
+        }
+    }));
     GLOBAL_LOGGER_INIT.call_once(|| unsafe {
         let _ = &*GLOBAL_LOGGER.get_or_insert(Arc::new(
             Logger::new(file, format).expect("failed to init logger"),
         ));
-    })
+    });
+    GlobLoggerHandle
 }
 
 #[macro_export]
@@ -119,6 +151,12 @@ macro_rules! cyan {
 macro_rules! red {
     ($str:expr) => {
         concat!("\x1b[0;31m", $str, "\x1b[0m")
+    };
+}
+
+macro_rules! bold_red {
+    ($str:expr) => {
+        concat!("\x1b[1;31m", $str, "\x1b[0m")
     };
 }
 
@@ -222,6 +260,7 @@ pub fn generate_utc_string() -> String {
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Default, Clone, Copy)]
 pub enum LogLevel {
+    Fatal = -1,
     Error = 0,
     Warn = 1,
     #[default]
@@ -233,6 +272,7 @@ pub enum LogLevel {
 impl std::fmt::Display for LogLevel {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            LogLevel::Fatal => write!(f, "Fatal"),
             LogLevel::Error => write!(f, "Error"),
             LogLevel::Warn => write!(f, "Warn "),
             LogLevel::Info => write!(f, "Info "),
@@ -245,6 +285,7 @@ impl std::fmt::Display for LogLevel {
 impl LogLevel {
     pub fn to_pretty_string(&self) -> &'static str {
         match self {
+            LogLevel::Fatal => bold_red!("Fatal"),
             LogLevel::Error => red!("Error"),
             LogLevel::Warn => yellow!("Warn "),
             LogLevel::Info => green!("Info "),
