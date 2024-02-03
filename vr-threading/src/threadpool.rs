@@ -6,9 +6,23 @@ use std::{
     thread::{self, available_parallelism},
 };
 
-use vr_logger::{debug, error, info};
-
 use crate::promises::Promise;
+/// trait every threadpool needs to implement
+pub trait ThreadPool {
+    /// execute a function in the threadpool without garantee of it being finished and ignoring the
+    /// return value
+    fn execute<F>(&self, f: F)
+    where
+        F: FnOnce() + Send + 'static;
+
+    /// get a handle to the result of the function in the form of a [Promise]
+    fn promised<F, T>(&self, f: F) -> Promise<T>
+    where
+        F: FnOnce() -> T + Send + 'static,
+        T: Send + 'static;
+}
+
+use vr_logger::{debug, error, info};
 
 pub struct GlobThreadPoolHandle;
 
@@ -35,20 +49,6 @@ impl Drop for GlobThreadPoolHandle {
     }
 }
 
-/// trait every threadpool needs to implement
-pub trait ThreadPool {
-    /// execute a function in the threadpool without garantee of it being finished and ignoring the
-    /// return value
-    fn execute<F>(&self, f: F)
-    where
-        F: FnOnce() + Send + 'static;
-
-    /// get a handle to the result of the function in the form of a [Promise]
-    fn promised<F, T>(&self, f: F) -> Promise<T>
-    where
-        F: FnOnce() -> T + Send + 'static,
-        T: Send + 'static;
-}
 type Job = Box<dyn FnOnce() + Send + 'static>;
 
 const NO_THREADPOOL_ERROR: &str = "Tried to execute a task while threadpool not available";

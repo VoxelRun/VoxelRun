@@ -7,5 +7,6 @@
 
 pub mod promises;
 pub mod threadpool;
+mod latch;
 
 pub use threadpool::{global_exec, global_init, global_promise};
