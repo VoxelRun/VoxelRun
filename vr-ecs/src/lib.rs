@@ -1,5 +1,3 @@
-use std::vec;
-
 /// A world which holds all entities. An entity is valid per world
 pub struct World {
     tables: Vec<Table>,
