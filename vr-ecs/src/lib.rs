@@ -1,8 +1,7 @@
 mod component;
 mod world;
-pub use component::{Component, DynamicComponent, ComponentBundle};
+pub use component::{Component, ComponentBundle, DynamicComponent};
 pub use world::World;
-
 
 /// An entity. Works similar to a reference
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -10,7 +9,6 @@ pub struct Entity {
     index: usize,
     generation: u32,
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -1,6 +1,5 @@
 use std::fmt::Debug;
 
-
 /// A component which can have a run-time id: See Component if the component is known at compile time
 pub trait DynamicComponent: Debug {
     fn get_id(&self) -> &str;
@@ -69,7 +68,7 @@ where
     }
 }
 
-impl<T, U, V, W, X> ComponentBundle for (T, U, V, W,X)
+impl<T, U, V, W, X> ComponentBundle for (T, U, V, W, X)
 where
     T: DynamicComponent + 'static,
     U: DynamicComponent + 'static,
@@ -88,7 +87,7 @@ where
     }
 }
 
-impl<T, U, V, W, X, Y> ComponentBundle for (T, U, V, W,X,Y)
+impl<T, U, V, W, X, Y> ComponentBundle for (T, U, V, W, X, Y)
 where
     T: DynamicComponent + 'static,
     U: DynamicComponent + 'static,
@@ -108,7 +107,7 @@ where
         ]
     }
 }
-impl<T, U, V, W, X, Y, Z> ComponentBundle for (T, U, V, W,X,Y, Z)
+impl<T, U, V, W, X, Y, Z> ComponentBundle for (T, U, V, W, X, Y, Z)
 where
     T: DynamicComponent + 'static,
     U: DynamicComponent + 'static,

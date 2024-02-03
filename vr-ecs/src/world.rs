@@ -1,5 +1,8 @@
+use super::{
+    component::{ComponentBundle, DynamicComponent},
+    Entity,
+};
 use std::{collections::HashMap, fmt::Debug, fmt::Display};
-use super::{component::{ComponentBundle, DynamicComponent}, Entity};
 
 /// A world which holds all entities. An entity is valid per world
 pub struct World {
