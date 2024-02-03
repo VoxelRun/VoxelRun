@@ -30,7 +30,9 @@ impl Display for World {
                     accumulator
                 })
         )?;
-        writeln!(f, "Tables:{}",
+        writeln!(
+            f,
+            "Tables:{}",
             self.tables.iter().map(|it| format!("{:?}", it)).fold(
                 String::new(),
                 |mut accumulator, it| {
@@ -92,7 +94,7 @@ impl World {
 
         let mut component_set = self.get_component_set(&components);
         component_set.sort();
-        let (table_index, table) = unsafe {self.get_or_create_table(component_set.clone())};
+        let (table_index, table) = unsafe { self.get_or_create_table(component_set.clone()) };
 
         let inner_table_index = unsafe { table.add(entity, &component_set, components) };
         if let Some(t) = self.entities.get_mut(index) {
