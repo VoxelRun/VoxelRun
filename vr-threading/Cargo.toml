@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 vr-logger = { path = "../vr-logger" }
+crossbeam = { version = "0.8.4", default-features = false, features = ["std"] }
